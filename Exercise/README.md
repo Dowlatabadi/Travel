@@ -75,7 +75,7 @@ So the whole get URL should be like this:
 
     http://localhost:8080/numbers?u=http://localhost:8090/primes&u=http://localhost:8090/odd&u=http://localhost:8090/rand&u=http://localhost:8090/fibo
 
-Sample oresponse body:
+Sample response body:
 
     {"numbers":[1,2,3,5,7,8,9,10,11,13,15,17,19,21,23,24,27,34,76]}
 
