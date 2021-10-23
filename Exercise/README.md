@@ -104,7 +104,7 @@ And the API end point is:
 Conclusion
 --------
 
- Although there can be other and slightly faster solutions with the sorting in the main thread, this solution tries to respect the timeout restriction therefore the whole process is happening within the threads/tasks by facilitating locks and a fast merging algorithm.
+ Although there can be other and slightly faster solutions with the sorting in the main thread, this solution tries to respect the timeout restriction, therefore the whole process is happening within the threads/tasks by facilitating locks and a fast merging algorithm.
 
 
 
