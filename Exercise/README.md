@@ -50,15 +50,15 @@ since every request localy would be sorted using builtin quick sort sorting algo
 
 After local sorting, since the merging of sorted lists happens in a locked process. it's time complexity can be evaluated like a sequential process, therefore the order of this part is:
     
-    `O(l1+l2+(l1+l2+l3)+....)=O(n*l1+(n-1)*l2+....)`
+    O(l1+l2+(l1+l2+l3)+....)=O(n*l1+(n-1)*l2+....)
 
 If the number of `l`s(URLs) are constant number with boundaries the order can be rewitten:
 
-    `o(n^2)`
+    o(n^2)
 
 Overal time complixity:
 
-    `O(n^2+n*lg(n))=O(n^2)`
+    O(n^2+n*lg(n))=O(n^2)
 
 
 Additional Details
