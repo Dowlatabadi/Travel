@@ -20,7 +20,7 @@ namespace ExerciseAPI.Controllers
     {
         //max timeout allowed for retriving, merging, duplicate removing and sorting external URLs information
         //due to delay to response and write output to stream for large lists, this number is below the 500 (target)
-        private static readonly int timeout = 460;
+        private static readonly int timeout = 450;
 
         private readonly ILogger<ExerciseController> _logger;
 
