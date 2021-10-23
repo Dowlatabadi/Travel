@@ -52,7 +52,7 @@ After local sorting, since the merging of sorted lists happens in a locked proce
     
     O(l1+l2+(l1+l2+l3)+....)=O(n*l1+(n-1)*l2+....)
 
-If the number of `l`s(URLs) are constant number with boundaries the order can be rewitten:
+If the number of `l`s(URLs) are constant number with boundaries, the order can be rewitten:
 
     o(n^2)
 
