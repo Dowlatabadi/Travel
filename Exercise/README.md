@@ -27,7 +27,7 @@ After locking, the task tries to merge its numbers (and remove duplicates) with 
 
 The whole process is a multi-task process like below chart:
 
-![alt text](http://url/to/img.png)
+![alt text](https://raw.githubusercontent.com/Dowlatabadi/Travel/master/Exercise/Capture.PNG)
 
 The `3rd list` needs to be copied to `result list` to have updated results.
 
