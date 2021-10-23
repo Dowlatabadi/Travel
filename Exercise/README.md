@@ -26,24 +26,9 @@ I have defined an object as a locker to access and modify cross-thread lists tha
 After locking, the task tries to merge its numbers (and remove duplicates) with the `final list` in `O(n)` with the help of a merging sorted lists algorithm and the result would be stored in a `third list`.
 
 The whole process is a multi-task process like below chart:
-```mermaid!
-flowchart TD
 
-    T1_get_url1_numbers --> T1_sort
-    T1_sort --> T1_lock_and_merge
-    T1_lock_and_merge --> final_list=merged_list1
-    final_list=merged_list1 --> return_result
-    T2_get_url2_numbers --> T2_sort
-    T2_sort --> T2_lock_and_merge
-    T2_lock_and_merge --> final_list=merged_list2
-    final_list=merged_list2 --> return_result
-    Tn_get_urln_numbers --> Tn_sort
-    Tn_sort --> Tn_lock_and_merge
-    Tn_lock_and_merge --> final_list=merged_listn
-    final_list=merged_listn --> return_result
-    return_result --> finish
+![alt text](http://url/to/img.png)
 
-```
 The `3rd list` needs to be copied to `result list` to have updated results.
 
 **Notice**: if the task time outs just before copying the `3rd list` to `final list` or in middle of the copying, `final list` is not complete and the `3rd list` would come with longer and better results, so at the end of the process a comparison between lengthes of `3rd` and `final list` would reveal the best result.
