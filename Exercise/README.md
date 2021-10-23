@@ -26,7 +26,7 @@ I have defined an object as a locker to access and modify cross-thread lists tha
 After locking, the task tries to merge its numbers (and remove duplicates) with the `final list` in `O(n)` with the help of a merging sorted lists algorithm and the result would be stored in a `third list`.
 
 The whole process is a multi-task process like below chart:
-```mermaid
+```mermaid!
 flowchart TD
 
     T1_get_url1_numbers --> T1_sort
