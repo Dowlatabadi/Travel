@@ -20,7 +20,7 @@ namespace ExerciseAPI.Controllers
     {
         //max timeout allowed for retriving, merging, duplicate removing and sorting external URLs information
         //due to delay to response and write output to stream for large lists, this number is below the 500 (target)
-        private static readonly int timeout = 450;
+        private static readonly int timeout = 420;
 
         private readonly ILogger<ExerciseController> _logger;
 
@@ -41,11 +41,13 @@ namespace ExerciseAPI.Controllers
 
         public ActionResult numbers([FromQuery] string[] u)
         {
+
             if (u.Length == 0)
             {
                 return Problem(detail: $"The input was empty. you need to privide the URLs.", statusCode: 400);
             }
             //the locker to lock on across tasks
+            SemaphoreSlim sm = new SemaphoreSlim(200, 200);
             object _locker = new object();
             try
             {
@@ -54,7 +56,7 @@ namespace ExerciseAPI.Controllers
                 var result = new List<int>();
                 var Third_list = new List<int>();
                 object set_lock = new object();
-                var cancel = new CancellationTokenSource();
+                var cancel = new CancellationTokenSource(timeout);
                 var token = cancel.Token;
 
 
@@ -65,9 +67,11 @@ namespace ExerciseAPI.Controllers
 
                     var t1 = Task.Factory.StartNew(() =>
                     {
+                        sm.Wait();
                         if (!IsUrlValid(uri))
                         {
                             Console.WriteLine($"URL isn't valid {uri}");
+                            sm.Release();
                             return;
                         }
                         var numbers = new List<int>();
@@ -79,6 +83,7 @@ namespace ExerciseAPI.Controllers
                         catch (Exception ex)
                         {
                             Console.WriteLine("get request failed");
+                            sm.Release();
                             //logging ex
                             return;
                         }
@@ -95,7 +100,7 @@ namespace ExerciseAPI.Controllers
                                 //handling the cancelation operation within the loop
                                 if (cancel.IsCancellationRequested)
                                 {
-
+                                    sm.Release();
                                     return;
                                 }
                                 if (local_index < local_count && (result_index >= result_count || numbers[local_index] < result.ElementAt(result_index)))
@@ -132,7 +137,7 @@ namespace ExerciseAPI.Controllers
 
                         }
 
-
+                        sm.Release();
                     }, cancellationToken: token);
                     tasks.Add(t1);
 
@@ -144,7 +149,7 @@ namespace ExerciseAPI.Controllers
                 var remaining_time = timeout - (int)spent_time;
                 if (remaining_time > 0)
                 {
-                    Task.WaitAll(tasks.ToArray(), remaining_time, cancel.Token);
+                    Task.WaitAll(tasks.ToArray(), remaining_time);
                 }
                 //cancel all running tasks
                 cancel.Cancel();
@@ -182,33 +187,40 @@ namespace ExerciseAPI.Controllers
         /// <returns></returns>
         private IEnumerable<int> get_uri_numbers(string uri)
         {
-
-            using (var client = new HttpClient())
+            try
             {
-
-                //HTTP GET
-                var responseTask = client.GetAsync(uri);
-                responseTask.Wait();
-
-                var result = responseTask.Result;
-                if (result.IsSuccessStatusCode)
+                using (var client = new HttpClient())
                 {
 
-                    var stringResult = result.Content.ReadAsStringAsync();
-                    stringResult.Wait();
-                    var dict = JsonSerializer.Deserialize<Dictionary<string, int[]>>(stringResult.Result);
-                    var numbers = dict["numbers"];
+                    //HTTP GET
+                    var responseTask = client.GetAsync(uri);
+                    responseTask.Wait();
+
+                    var result = responseTask.Result;
+                    if (result.IsSuccessStatusCode)
+                    {
+
+                        var stringResult = result.Content.ReadAsStringAsync();
+                        stringResult.Wait();
+                        var dict = JsonSerializer.Deserialize<Dictionary<string, int[]>>(stringResult.Result);
+                        var numbers = dict["numbers"];
 
 
 
-                    return numbers;
-                }
-                else
-                {
-                    Console.WriteLine($"HTTP GET failed.");
-                    //log error
+                        return numbers;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"HTTP GET failed. {result.StatusCode.ToString()}");
+                        //log error
+                    }
                 }
             }
+            catch (TaskCanceledException ex)
+            {
+                Console.WriteLine($"HTTP GET caceled.");
+            }
+
             return new List<int>();
         }
 
