@@ -18,15 +18,20 @@ namespace ExerciseAPI.Controllers
     [Route("/")]
     public class ExerciseController : ControllerBase
     {
+        private readonly string pattern;
+        private readonly Regex reg;
+        private readonly ILogger<ExerciseController> _logger;
+
         //max timeout allowed for retriving, merging, duplicate removing and sorting external URLs information
         //due to delay to response and write output to stream for large lists, this number is below the 500 (target)
-        private static readonly int timeout = 420;
+        private static readonly int timeout = 400;
 
-        private readonly ILogger<ExerciseController> _logger;
 
         public ExerciseController(ILogger<ExerciseController> logger)
         {
             _logger = logger;
+            pattern = @"^http(s)?://([\w-]+.)+[\w-]+(/[\w- ./?%&=])?$";
+            reg = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
         }
         /// <summary>
         /// Returns a json response including the merged and sorted numbers extracted from URLs
@@ -47,7 +52,6 @@ namespace ExerciseAPI.Controllers
                 return Problem(detail: $"The input was empty. you need to privide the URLs.", statusCode: 400);
             }
             //the locker to lock on across tasks
-            SemaphoreSlim sm = new SemaphoreSlim(200, 200);
             object _locker = new object();
             try
             {
@@ -67,11 +71,9 @@ namespace ExerciseAPI.Controllers
 
                     var t1 = Task.Factory.StartNew(() =>
                     {
-                        sm.Wait();
                         if (!IsUrlValid(uri))
                         {
                             Console.WriteLine($"URL isn't valid {uri}");
-                            sm.Release();
                             return;
                         }
                         var numbers = new List<int>();
@@ -79,11 +81,15 @@ namespace ExerciseAPI.Controllers
                         {
                             //sort and remove dups from local result
                             numbers = get_uri_numbers(uri).ToHashSet().OrderBy(x => x).ToList();
+                            if (!numbers.Any())
+                            {
+                                Console.WriteLine("timeout or error retriving numbers");
+                                return;
+                            }
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine("get request failed");
-                            sm.Release();
                             //logging ex
                             return;
                         }
@@ -100,7 +106,6 @@ namespace ExerciseAPI.Controllers
                                 //handling the cancelation operation within the loop
                                 if (cancel.IsCancellationRequested)
                                 {
-                                    sm.Release();
                                     return;
                                 }
                                 if (local_index < local_count && (result_index >= result_count || numbers[local_index] < result.ElementAt(result_index)))
@@ -132,12 +137,11 @@ namespace ExerciseAPI.Controllers
                                 }
 
                             }
-                            // now the Third_list is ordered but we need to update result aswell for the use of the other tasks
+                            // now the Third_list is sorted but we need to update result as well for the use of the other tasks
                             result = new List<int>(Third_list);
 
                         }
 
-                        sm.Release();
                     }, cancellationToken: token);
                     tasks.Add(t1);
 
@@ -176,8 +180,7 @@ namespace ExerciseAPI.Controllers
         {
             if (string.IsNullOrEmpty(url))
                 return false;
-            string pattern = @"^http(s)?://([\w-]+.)+[\w-]+(/[\w- ./?%&=])?$";
-            Regex reg = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
             return reg.IsMatch(url);
         }
         /// <summary>
@@ -185,15 +188,16 @@ namespace ExerciseAPI.Controllers
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        private IEnumerable<int> get_uri_numbers(string uri)
+        private static IEnumerable<int> get_uri_numbers(string uri)
         {
             try
             {
+
                 using (var client = new HttpClient())
                 {
 
                     //HTTP GET
-                    var responseTask = client.GetAsync(uri);
+                    var responseTask = client.GetAsync(uri, HttpCompletionOption.ResponseContentRead);
                     responseTask.Wait();
 
                     var result = responseTask.Result;
@@ -201,7 +205,6 @@ namespace ExerciseAPI.Controllers
                     {
 
                         var stringResult = result.Content.ReadAsStringAsync();
-                        stringResult.Wait();
                         var dict = JsonSerializer.Deserialize<Dictionary<string, int[]>>(stringResult.Result);
                         var numbers = dict["numbers"];
 
@@ -215,11 +218,14 @@ namespace ExerciseAPI.Controllers
                         //log error
                     }
                 }
+
             }
-            catch (TaskCanceledException ex)
+            catch (OperationCanceledException ex)
             {
-                Console.WriteLine($"HTTP GET caceled.");
+
+                Console.WriteLine($"HTTP GET failed. {ex.Message}");
             }
+
 
             return new List<int>();
         }
