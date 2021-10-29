@@ -124,12 +124,13 @@ Conclusion
    | Threads (Users)  |  Total Samples  | Average Response (ms)        | Empty Response %          | Errors  | Throughput (Reqs/s)  | 
 | ------------- |:-------------:| -----:|-----:| -----:|-----:|
 | 1      | 10,000 | 473 | 0.00% | 0.00% | 2.109/sec |
-| 4     | 10,000   | 475 | 2.34% | 0.00% | 8.06/sec |
-| 10 | 10,000      | 482 | 3.14% | 0.00% | 20.68/sec |
-| 32 | 10,000      | 485 | 14.21% | 0.00% | 65.6/sec |
-| 100 | 100,000      | 505 | 58.38% | 0.00% | 162.7/sec |
+| 4     | 10,000   | 475 | 0.00% | 0.00% | 8.06/sec |
+| 10 | 10,000      | 482 | 0.00% | 0.00% | 21.12/sec |
+| 32 | 10,000      | 485 | 6.4% | 0.00% | 65.6/sec |
+| 100 | 10,000      | 494 | 38.38% | 0.00% | 162.7/sec |
 
-
+Even for more than 100 users, the maxThreads can be set in program.cs (current value=1000).
+Maximum degree of parrallelism can also be tweaked for faster responses (trade of between accuracy and response time).
 
 
 
