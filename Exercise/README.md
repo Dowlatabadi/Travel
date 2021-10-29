@@ -129,8 +129,8 @@ Conclusion
 | 32 | 10,000      | 485 | 6.4% | 0.00% | 65.6/sec |
 | 100 | 10,000      | 494 | 38.38% | 0.00% | 162.7/sec |
 
-Even for more than 100 users, the maxThreads can be set in program.cs (current value=1000).
-Maximum degree of parrallelism can also be tweaked for faster responses (trade of between accuracy and response time).
+- Even for more than 100 users, the maxThreads can be set in program.cs (current value=1000 which means by degree of concurrency=15 => wcan handle (1000/15)=66 requests/users concurrently).
+- Maximum degree of concurrency can also be tweaked for faster responses (trade of between accuracy and response time).
 
 
 
