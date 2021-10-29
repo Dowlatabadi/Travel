@@ -115,7 +115,7 @@ Conclusion
  1. In case the user uses a long parameter as input, the number of tasks would increase rapidly which would result in some kind of bottleneck and the actual sorting never happens cause the method is still trying to fetch http results.
  So I have added a `maximum degree of parallelism` which means maximum `number of concurrent tasks`, using a `semaphore` with number of resources equal to degree of parallelism and waiting on them just after starting the task, within each task.
 
- 2. due to thread safe HTTP clients in .NET, I used a `single intance of HTTP client` in every Controller instance.
+ 2. Since HTTP clients in .NET are thread safe (get), I used a `single intance of HTTP client` in every Controller instance.
 
  3. `Cancellation token` now is using more wisely, and within the HTTP get, as a time consuming IO operation, upon timeout, the get operation would be terminated. And `Response Time` satisfied more accurately.
 
