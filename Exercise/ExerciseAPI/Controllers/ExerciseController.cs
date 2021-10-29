@@ -23,7 +23,7 @@ namespace ExerciseAPI.Controllers
         private readonly ILogger<ExerciseController> _logger;
         private CancellationTokenSource cancel;
         private CancellationToken token;
-        private readonly static int max_degree_of_concurrency= 15;
+        private readonly static int max_degree_of_concurrency= 20;
 
         //max timeout allowed for retriving, merging, duplicate removing and sorting external URLs information
         //due to delay to response and write output to stream for large lists, this number is below the 500 (target)

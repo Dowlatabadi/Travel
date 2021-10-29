@@ -21,7 +21,7 @@ namespace ExerciseAPI
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>().UseUrls("http://localhost:8080");
+                    webBuilder.UseStartup<Startup>();
                 });
     }
 }
