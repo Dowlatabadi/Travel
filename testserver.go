@@ -13,9 +13,9 @@ func main() {
 	listenAddr := flag.String("http.addr", ":8090", "http listen address")
 	flag.Parse()
 
-	http.HandleFunc("/primes", handler([]int{2, 3, 5, 7, 11, 13}))
+	http.HandleFunc("/primes", handler([]int{2, 3, 5, 7, 11, 13,17,19,23,29,31,37,41,43}))
 	http.HandleFunc("/fibo", handler([]int{1, 1, 2, 3, 5, 8, 13, 21}))
-	http.HandleFunc("/odd", handler([]int{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23}))
+	http.HandleFunc("/odd", handler([]int{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23,25}))
 	http.HandleFunc("/rand", handler([]int{5, 17, 3, 19, 76, 24, 1, 5, 10, 34, 8, 27, 7}))
 
 	log.Fatal(http.ListenAndServe(*listenAddr, nil))

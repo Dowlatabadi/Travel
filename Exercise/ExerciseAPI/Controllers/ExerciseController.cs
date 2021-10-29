@@ -23,18 +23,19 @@ namespace ExerciseAPI.Controllers
         private readonly ILogger<ExerciseController> _logger;
         private CancellationTokenSource cancel;
         private CancellationToken token;
-        private readonly static int max_degree_of_parallelism = 10;
-        private readonly SemaphoreSlim parallelism_sem;
+        private readonly static int max_degree_of_concurrency= 10;
+
         //max timeout allowed for retriving, merging, duplicate removing and sorting external URLs information
         //due to delay to response and write output to stream for large lists, this number is below the 500 (target)
-        private static readonly int timeout = 460;
+        private static readonly int timeout = 470;
         private readonly HttpClient _client;
 
         public ExerciseController(ILogger<ExerciseController> logger)
         {
-            
+
             cancel = new CancellationTokenSource(timeout);
             token = cancel.Token;
+
             _client = new HttpClient();
             _logger = logger;
             _pattern = @"^http(s)?://([\w-]+.)+[\w-]+(/[\w- ./?%&=])?$";
@@ -53,11 +54,11 @@ namespace ExerciseAPI.Controllers
 
         public ActionResult numbers([FromQuery] string[] u)
         {
-
             if (u.Length == 0)
             {
                 return Problem(detail: $"The input was empty. you need to privide the URLs.", statusCode: 400);
             }
+            var parallelism_sem = new SemaphoreSlim(max_degree_of_concurrency, max_degree_of_concurrency);
             //the locker to lock on across tasks
             object _locker = new object();
             try
@@ -76,11 +77,11 @@ namespace ExerciseAPI.Controllers
 
                     var t1 = Task.Factory.StartNew(() =>
                     {
-
+                        parallelism_sem.Wait();
                         if (!IsUrlValid(uri))
                         {
                             Console.WriteLine($"URL isn't valid {uri}");
-
+                            parallelism_sem.Release();
                             return;
                         }
                         var numbers = new List<int>();
@@ -91,6 +92,7 @@ namespace ExerciseAPI.Controllers
                             if (!numbers.Any())
                             {
                                 Console.WriteLine("timeout or error retriving numbers");
+                                parallelism_sem.Release();
 
 
                                 return;
@@ -100,6 +102,7 @@ namespace ExerciseAPI.Controllers
                         {
                             Console.WriteLine("get request failed");
                             //logging ex
+                            parallelism_sem.Release();
 
 
                             return;
@@ -152,6 +155,7 @@ namespace ExerciseAPI.Controllers
                             // now the Third_list is sorted but we need to update result as well for the use of the other tasks
                             result = new List<int>(Third_list);
                         }
+                        parallelism_sem.Release();
 
 
                     }, cancellationToken: token);
