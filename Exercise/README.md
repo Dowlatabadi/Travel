@@ -117,16 +117,17 @@ Conclusion
 
  2. due to thread safe HTTP clients in .NET, I used a `single intance of HTTP client` in every Controller instance.
 
- 3. `Cancellation token` now is using more wisely, and withing HTTP get as a time consuming IO operation, upon timeout, the get operation would be terminated. And `Response Time` satisfied more accurately.
+ 3. `Cancellation token` now is using more wisely, and within the HTTP get, as a time consuming IO operation, upon timeout, the get operation would be terminated. And `Response Time` satisfied more accurately.
 
  4. Benchmarks (using `Jmeter`) on a `linux` machine gave some inights about the performance which is presented in a table:
 
    | Threads (Users)  |  Total Samples  | Average Response (ms)        | Empty Response %          | Errors  | Throughput (Reqs/s)  | 
 | ------------- |:-------------:| -----:|-----:| -----:|-----:|
-| 1      | 10000 | 473 | 0.00% | 0.00% | 2.109/sec |
-| 4     | 10000   | 475 | 2.34% | 0.00% | 8.06/sec |
-| 32 | 10000      | 473 | 0.00% | 0.00% | 2.109/sec |
-| 64 | 10000      | 473 | 0.00% | 0.00% | 2.109/sec |
+| 1      | 10,000 | 473 | 0.00% | 0.00% | 2.109/sec |
+| 4     | 10,000   | 475 | 2.34% | 0.00% | 8.06/sec |
+| 10 | 10,000      | 482 | 3.14% | 0.00% | 20.68/sec |
+| 32 | 10,000      | 485 | 14.21% | 0.00% | 65.6/sec |
+| 100 | 100,000      | 473 | 58.38% | 0.00% | 162.7/sec |
 
 
 
