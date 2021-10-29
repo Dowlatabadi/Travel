@@ -90,9 +90,8 @@ The solution is a .net 5 API project. It can be run in different ways:
   
         ..\Exercise>docker build . -t travel
         docker run -it -p 8080:8080 --network="host" travel
-3. using visual studio itself and running the solution.
 
-In all cases the swagger is accessible here:
+In both cases the swagger is accessible here:
 
         http://localhost:8080/swagger/index.html
     
