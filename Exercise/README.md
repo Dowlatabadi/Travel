@@ -91,10 +91,15 @@ The solution is a .net 5 API project. It can be run in different ways:
         ..\Exercise>docker build . -t travel
         docker run -it -p 8080:8080 --network="host" travel
  **Notice**: Network should be assigned to host, so the port 8090 would be reachable withing the API container
+
+**Notice**: The `host network` is working for linux users only, so if you are testing with Window/Mac, you need to use method 1.
+
+
 In both cases the swagger is accessible here:
 
-        http://localhost:8080/swagger/index.html
+	http://localhost:8080/swagger/index.html
     
+
 And the API end point is:
 
         http://localhost:8080/numbers
