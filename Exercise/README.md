@@ -118,7 +118,7 @@ Conclusion
 
  3. `Cancellation token` now is using more wisely, and within the HTTP get, as a time consuming IO operation, upon timeout, the get operation would be terminated. And `Response Time` satisfied more accurately.
 
- 4. Benchmarks (using `Jmeter`) on a `linux` machine gave some inights about the performance which is presented in a table:
+ 4. Benchmarks (using `Jmeter`) on a `linux` machine, gave some inights about the performance which is presented in a table:
 
    | Threads (Users)  |  Total Samples  | Average Response (ms)        | Empty Response %          | Errors  | Throughput (Reqs/s)  | 
 | ------------- |:-------------:| -----:|-----:| -----:|-----:|
