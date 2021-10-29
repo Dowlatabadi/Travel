@@ -21,15 +21,20 @@ namespace ExerciseAPI.Controllers
         private readonly string _pattern;
         private readonly Regex _reg;
         private readonly ILogger<ExerciseController> _logger;
-        private readonly HttpClient _client;
-        private readonly static int max_degree_of_parallelism = 100;
+        private CancellationTokenSource cancel;
+        private CancellationToken token;
+        private readonly static int max_degree_of_parallelism = 10;
+        private readonly SemaphoreSlim parallelism_sem;
         //max timeout allowed for retriving, merging, duplicate removing and sorting external URLs information
         //due to delay to response and write output to stream for large lists, this number is below the 500 (target)
-        private static readonly int timeout = 400;
-
+        private static readonly int timeout = 460;
+        private readonly HttpClient _client;
 
         public ExerciseController(ILogger<ExerciseController> logger)
         {
+            
+            cancel = new CancellationTokenSource(timeout);
+            token = cancel.Token;
             _client = new HttpClient();
             _logger = logger;
             _pattern = @"^http(s)?://([\w-]+.)+[\w-]+(/[\w- ./?%&=])?$";
@@ -62,9 +67,7 @@ namespace ExerciseAPI.Controllers
                 var result = new List<int>();
                 var Third_list = new List<int>();
                 object set_lock = new object();
-                var cancel = new CancellationTokenSource(timeout);
-                var token = cancel.Token;
-                var prallelism_semaphore = new SemaphoreSlim(max_degree_of_parallelism, max_degree_of_parallelism);
+
 
                 var tasks = new List<Task>() { };
                 //creating a task foreach URL
@@ -73,11 +76,11 @@ namespace ExerciseAPI.Controllers
 
                     var t1 = Task.Factory.StartNew(() =>
                     {
-                        prallelism_semaphore.Wait();
+
                         if (!IsUrlValid(uri))
                         {
                             Console.WriteLine($"URL isn't valid {uri}");
-                            prallelism_semaphore.Release();
+
                             return;
                         }
                         var numbers = new List<int>();
@@ -88,7 +91,8 @@ namespace ExerciseAPI.Controllers
                             if (!numbers.Any())
                             {
                                 Console.WriteLine("timeout or error retriving numbers");
-                                prallelism_semaphore.Release();
+
+
                                 return;
                             }
                         }
@@ -96,7 +100,8 @@ namespace ExerciseAPI.Controllers
                         {
                             Console.WriteLine("get request failed");
                             //logging ex
-                            prallelism_semaphore.Release();
+
+
                             return;
                         }
 
@@ -112,7 +117,7 @@ namespace ExerciseAPI.Controllers
                                 //handling the cancelation operation within the loop
                                 if (cancel.IsCancellationRequested)
                                 {
-                                    prallelism_semaphore.Release();
+
                                     return;
                                 }
                                 if (local_index < local_count && (result_index >= result_count || numbers[local_index] < result.ElementAt(result_index)))
@@ -147,7 +152,7 @@ namespace ExerciseAPI.Controllers
                             // now the Third_list is sorted but we need to update result as well for the use of the other tasks
                             result = new List<int>(Third_list);
                         }
-                        prallelism_semaphore.Release();
+
 
                     }, cancellationToken: token);
                     tasks.Add(t1);
@@ -203,7 +208,7 @@ namespace ExerciseAPI.Controllers
 
 
                 //HTTP GET
-                var responseTask = _client.GetAsync(uri, HttpCompletionOption.ResponseContentRead);
+                var responseTask = _client.GetAsync(uri, token);
                 responseTask.Wait();
 
                 var result = responseTask.Result;
