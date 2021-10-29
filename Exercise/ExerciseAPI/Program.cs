@@ -6,13 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using System.Threading;
 namespace ExerciseAPI
 {
     public class Program
     {
         public static void Main(string[] args)
         {
+            ThreadPool.SetMinThreads(1000, 1000);
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -20,7 +21,7 @@ namespace ExerciseAPI
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>().UseUrls("http://localhost:8080");
                 });
     }
 }

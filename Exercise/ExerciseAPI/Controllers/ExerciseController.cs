@@ -23,7 +23,7 @@ namespace ExerciseAPI.Controllers
         private readonly ILogger<ExerciseController> _logger;
         private CancellationTokenSource cancel;
         private CancellationToken token;
-        private readonly static int max_degree_of_concurrency= 10;
+        private readonly static int max_degree_of_concurrency= 15;
 
         //max timeout allowed for retriving, merging, duplicate removing and sorting external URLs information
         //due to delay to response and write output to stream for large lists, this number is below the 500 (target)
@@ -91,7 +91,7 @@ namespace ExerciseAPI.Controllers
                             numbers = get_uri_numbers(uri).ToHashSet().OrderBy(x => x).ToList();
                             if (!numbers.Any())
                             {
-                                Console.WriteLine("timeout or error retriving numbers");
+                                // Console.WriteLine("timeout or error retriving numbers");
                                 parallelism_sem.Release();
 
 
@@ -100,7 +100,7 @@ namespace ExerciseAPI.Controllers
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("get request failed");
+                            // Console.WriteLine("get request failed");
                             //logging ex
                             parallelism_sem.Release();
 
@@ -173,7 +173,7 @@ namespace ExerciseAPI.Controllers
                 }
                 //cancel all running tasks
                 cancel.Cancel();
-                Console.WriteLine($"({nameof(numbers)}) {(int)sw.Elapsed.TotalMilliseconds} completed:{tasks.Where(x => x.IsCompletedSuccessfully).Count()}  total_result:{Math.Max(Third_list.Count(), result.Count())}");
+                Console.WriteLine($"({nameof(numbers)}) {DateTime.Now.ToString("HH:mm:ss")} {(int)sw.Elapsed.TotalMilliseconds} ms Completed Tasks:{tasks.Where(x => x.IsCompletedSuccessfully).Count()}  Result Length:{Math.Max(Third_list.Count(), result.Count())}");
                 //return the longer ordered result
                 //to prevent the short result due to timeout in the middle of copying elements to result or just before it
                 return Ok(new { numbers = Third_list.Count() > result.Count() ? Third_list : result });
@@ -229,7 +229,7 @@ namespace ExerciseAPI.Controllers
                 }
                 else
                 {
-                    Console.WriteLine($"HTTP GET failed. {result.StatusCode.ToString()}");
+                    // Console.WriteLine($"HTTP GET failed. {result.StatusCode.ToString()}");
                     //log error
                 }
 
@@ -238,12 +238,12 @@ namespace ExerciseAPI.Controllers
             catch (OperationCanceledException ex)
             {
 
-                Console.WriteLine($"HTTP GET failed. {ex.Message}");
+                // Console.WriteLine($"HTTP GET failed. {ex.Message}");
             }
             catch (Exception ex)
             {
 
-                Console.WriteLine($"HTTP GET failed. {ex.Message}");
+                // Console.WriteLine($"HTTP GET failed. {ex.Message}");
             }
 
             return new List<int>();
