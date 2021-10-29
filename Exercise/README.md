@@ -107,4 +107,30 @@ Conclusion
  Although there can be other and slightly faster solutions with the sorting in the main thread, this solution tries to respect the timeout restriction, therefore the whole process is happening within the threads/tasks by facilitating locks and a fast merging algorithm.
 
 
+ What is changed?
+ ---------
+
+ I have benchmarked the solution an fixed some minor bugs. I also considered additional cases:
+
+ 1. In case the user uses a long parameter as input, the number of tasks would increase rapidly which would result in some kind of bottleneck and the actual sorting never happens cause the method is still trying to fetch http results.
+ So I have added a `maximum degree of parallelism` which means maximum `number of concurrent tasks`, using a `semaphore` with number of resources equal to degree of parallelism and waiting on them just after starting the task, within each task.
+
+ 2. due to thread safe HTTP clients in .NET, I used a `single intance of HTTP client` in every Controller instance.
+
+ 3. `Cancellation token` now is using more wisely, and withing HTTP get as a time consuming IO operation, upon timeout, the get operation would be terminated. And `Response Time` satisfied more accurately.
+
+ 4. Benchmarks (using `Jmeter`) on a `linux` machine gave some inights about the performance which is presented in a table:
+
+   | Threads (Users)  |  Total Samples  | Average Response (ms)        | Empty Response %          | Errors  | Throughput (Reqs/s)  | 
+| ------------- |:-------------:| -----:|-----:| -----:|-----:|
+| 1      | 10000 | 473 | 0.00% | 0.00% | 2.109/sec |
+| 4     | 10000   | 475 | 2.34% | 0.00% | 8.06/sec |
+| 32 | 10000      | 473 | 0.00% | 0.00% | 2.109/sec |
+| 64 | 10000      | 473 | 0.00% | 0.00% | 2.109/sec |
+
+
+
+
+
+
 
