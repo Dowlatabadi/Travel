@@ -90,7 +90,7 @@ The solution is a .net 5 API project. It can be run in different ways:
   
         ..\Exercise>docker build . -t travel
         docker run -it -p 8080:8080 --network="host" travel
- network sghould be assigned to host, so the port 8090 would be reachable withing the API container
+ **Notice**: Network should be assigned to host, so the port 8090 would be reachable withing the API container
 In both cases the swagger is accessible here:
 
         http://localhost:8080/swagger/index.html
@@ -128,6 +128,7 @@ Conclusion
 | 32 | 10,000      | 485 | 6.4% | 0.00% | 58.6/sec |
 | 100 | 10,000      | 494 | 38.38% | 0.00% | 162.7/sec |
 
+- In all tests the parameter(u) length was 50.
 - Even for more than 100 users, the maxThreads can be set in program.cs (current value=1000 which means by degree of concurrency=15 => can handle (1000/15)=66 requests/users concurrently).
 - Maximum degree of concurrency can also be tweaked for faster responses (trade of between accuracy and response time).
 
