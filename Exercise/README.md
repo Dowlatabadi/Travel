@@ -89,7 +89,7 @@ The solution is a .net 5 API project. It can be run in different ways:
 2. using the docker:
   
         ..\Exercise>docker build . -t name
-        docker run -detach -p 8080:80 name
+        docker run -detach -p 8080:8080 name
 3. using visual studio itself and running the solution.
 
 In all cases the swagger is accessible here:
