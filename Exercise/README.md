@@ -125,7 +125,7 @@ Conclusion
 | 1      | 10,000 | 473 | 0.00% | 0.00% | 2.109/sec |
 | 4     | 10,000   | 475 | 0.00% | 0.00% | 8.06/sec |
 | 10 | 10,000      | 482 | 0.00% | 0.00% | 21.12/sec |
-| 32 | 10,000      | 485 | 6.4% | 0.00% | 65.6/sec |
+| 32 | 10,000      | 485 | 6.4% | 0.00% | 58.6/sec |
 | 100 | 10,000      | 494 | 38.38% | 0.00% | 162.7/sec |
 
 - Even for more than 100 users, the maxThreads can be set in program.cs (current value=1000 which means by degree of concurrency=15 => can handle (1000/15)=66 requests/users concurrently).
