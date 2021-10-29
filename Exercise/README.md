@@ -88,8 +88,8 @@ The solution is a .net 5 API project. It can be run in different ways:
         ..\Exercise\ExerciseAPI>dotnet run .
 2. using the docker:
   
-        ..\Exercise>docker build . -t name
-        docker run -detach -p 8080:8080 name
+        ..\Exercise>docker build . -t travel
+        docker run -it -p 8080:8080 --network="host" travel
 3. using visual studio itself and running the solution.
 
 In all cases the swagger is accessible here:
