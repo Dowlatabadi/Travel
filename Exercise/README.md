@@ -90,7 +90,7 @@ The solution is a .net 5 API project. It can be run in different ways:
   
         ..\Exercise>docker build . -t travel
         docker run -it -p 8080:8080 --network="host" travel
- **Notice**: Network should be assigned to host, so the port 8090 would be reachable withing the API container
+ **Notice**: Network should be assigned to host, so the port 8090 would be reachable within the API container
 
 **Notice**: The `host network` is working for linux users only, so if you are testing with Window/Mac, you need to use method 1.
 
