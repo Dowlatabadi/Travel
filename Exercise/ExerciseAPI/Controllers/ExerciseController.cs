@@ -18,10 +18,11 @@ namespace ExerciseAPI.Controllers
     [Route("/")]
     public class ExerciseController : ControllerBase
     {
-        private readonly string pattern;
-        private readonly Regex reg;
+        private readonly string _pattern;
+        private readonly Regex _reg;
         private readonly ILogger<ExerciseController> _logger;
-
+        private readonly HttpClient _client;
+        private readonly static int max_degree_of_parallelism = 100;
         //max timeout allowed for retriving, merging, duplicate removing and sorting external URLs information
         //due to delay to response and write output to stream for large lists, this number is below the 500 (target)
         private static readonly int timeout = 400;
@@ -29,9 +30,10 @@ namespace ExerciseAPI.Controllers
 
         public ExerciseController(ILogger<ExerciseController> logger)
         {
+            _client = new HttpClient();
             _logger = logger;
-            pattern = @"^http(s)?://([\w-]+.)+[\w-]+(/[\w- ./?%&=])?$";
-            reg = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            _pattern = @"^http(s)?://([\w-]+.)+[\w-]+(/[\w- ./?%&=])?$";
+            _reg = new Regex(_pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
         }
         /// <summary>
         /// Returns a json response including the merged and sorted numbers extracted from URLs
@@ -62,7 +64,7 @@ namespace ExerciseAPI.Controllers
                 object set_lock = new object();
                 var cancel = new CancellationTokenSource(timeout);
                 var token = cancel.Token;
-
+                var prallelism_semaphore = new SemaphoreSlim(max_degree_of_parallelism, max_degree_of_parallelism);
 
                 var tasks = new List<Task>() { };
                 //creating a task foreach URL
@@ -71,9 +73,11 @@ namespace ExerciseAPI.Controllers
 
                     var t1 = Task.Factory.StartNew(() =>
                     {
+                        prallelism_semaphore.Wait();
                         if (!IsUrlValid(uri))
                         {
                             Console.WriteLine($"URL isn't valid {uri}");
+                            prallelism_semaphore.Release();
                             return;
                         }
                         var numbers = new List<int>();
@@ -84,6 +88,7 @@ namespace ExerciseAPI.Controllers
                             if (!numbers.Any())
                             {
                                 Console.WriteLine("timeout or error retriving numbers");
+                                prallelism_semaphore.Release();
                                 return;
                             }
                         }
@@ -91,6 +96,7 @@ namespace ExerciseAPI.Controllers
                         {
                             Console.WriteLine("get request failed");
                             //logging ex
+                            prallelism_semaphore.Release();
                             return;
                         }
 
@@ -106,6 +112,7 @@ namespace ExerciseAPI.Controllers
                                 //handling the cancelation operation within the loop
                                 if (cancel.IsCancellationRequested)
                                 {
+                                    prallelism_semaphore.Release();
                                     return;
                                 }
                                 if (local_index < local_count && (result_index >= result_count || numbers[local_index] < result.ElementAt(result_index)))
@@ -139,8 +146,8 @@ namespace ExerciseAPI.Controllers
                             }
                             // now the Third_list is sorted but we need to update result as well for the use of the other tasks
                             result = new List<int>(Third_list);
-
                         }
+                        prallelism_semaphore.Release();
 
                     }, cancellationToken: token);
                     tasks.Add(t1);
@@ -181,43 +188,42 @@ namespace ExerciseAPI.Controllers
             if (string.IsNullOrEmpty(url))
                 return false;
 
-            return reg.IsMatch(url);
+            return _reg.IsMatch(url);
         }
         /// <summary>
         /// Gets numbers from an provided URL address
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        private static IEnumerable<int> get_uri_numbers(string uri)
+        private IEnumerable<int> get_uri_numbers(string uri)
         {
             try
             {
 
-                using (var client = new HttpClient())
+
+
+                //HTTP GET
+                var responseTask = _client.GetAsync(uri, HttpCompletionOption.ResponseContentRead);
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                if (result.IsSuccessStatusCode)
                 {
 
-                    //HTTP GET
-                    var responseTask = client.GetAsync(uri, HttpCompletionOption.ResponseContentRead);
-                    responseTask.Wait();
-
-                    var result = responseTask.Result;
-                    if (result.IsSuccessStatusCode)
-                    {
-
-                        var stringResult = result.Content.ReadAsStringAsync();
-                        var dict = JsonSerializer.Deserialize<Dictionary<string, int[]>>(stringResult.Result);
-                        var numbers = dict["numbers"];
+                    var stringResult = result.Content.ReadAsStringAsync();
+                    var dict = JsonSerializer.Deserialize<Dictionary<string, int[]>>(stringResult.Result);
+                    var numbers = dict["numbers"];
 
 
 
-                        return numbers;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"HTTP GET failed. {result.StatusCode.ToString()}");
-                        //log error
-                    }
+                    return numbers;
                 }
+                else
+                {
+                    Console.WriteLine($"HTTP GET failed. {result.StatusCode.ToString()}");
+                    //log error
+                }
+
 
             }
             catch (OperationCanceledException ex)
@@ -225,7 +231,11 @@ namespace ExerciseAPI.Controllers
 
                 Console.WriteLine($"HTTP GET failed. {ex.Message}");
             }
+            catch (Exception ex)
+            {
 
+                Console.WriteLine($"HTTP GET failed. {ex.Message}");
+            }
 
             return new List<int>();
         }
