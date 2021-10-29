@@ -109,7 +109,7 @@ Conclusion
  What is changed?
  ---------
 
- I Performance dramatically increased and I have benchmarked the solution an fixed some minor bugs. I also considered additional cases:
+ Performance dramatically increased and I have benchmarked the solution an fixed some minor bugs. I also considered additional cases:
 
  1. In case the user uses a long parameter as input, the number of tasks would increase rapidly which would result in some kind of bottleneck and the actual sorting never happens cause the method is still trying to fetch http results.
  So I have added a `maximum degree of parallelism` which means maximum `number of concurrent tasks`, using a `semaphore` with number of resources equal to degree of parallelism and waiting on them just after starting the task, within each task.
